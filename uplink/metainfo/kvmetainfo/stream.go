@@ -58,6 +58,15 @@ func (stream *readonlyStream) segment(ctx context.Context, index int64) (segment
 	segment.Size = stream.info.Size
 	segment.EncryptedKeyNonce = info.SegmentEncryption.EncryptedKeyNonce
 	segment.EncryptedKey = info.SegmentEncryption.EncryptedKey
+	segment.Pieces = make([]storj.Piece, 0, len(limits))
+
+	for _, l := range limits {
+		if l != nil {
+			segment.Pieces = append(segment.Pieces, storj.Piece{
+				Location: l.Limit.StorageNodeId,
+			})
+		}
+	}
 
 	streamKey, err := encryption.DeriveContentKey(stream.info.Bucket.Name, paths.NewUnencrypted(stream.info.Path), stream.db.encStore)
 	if err != nil {

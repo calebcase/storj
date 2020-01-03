@@ -91,6 +91,10 @@ func (o *Object) DownloadRange(ctx context.Context, offset, length int64) (_ io.
 	return stream.NewDownloadRange(ctx, segmentStream, o.streams, offset, length), nil
 }
 
+func (o *Object) GetSegmentStream(ctx context.Context, offset, length int64) (kvmetainfo.ReadOnlyStream, error) {
+	return o.metainfoDB.GetObjectStream(ctx, o.bucket, o.object)
+}
+
 // Close closes the Object.
 func (o *Object) Close() error {
 	return nil
