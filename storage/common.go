@@ -17,6 +17,9 @@ var mon = monkit.Package()
 // Delimiter separates nested paths in storage
 const Delimiter = '/'
 
+//ErrKeyExists used when something already exist
+var ErrKeyExists = errs.Class("key already exists")
+
 //ErrKeyNotFound used when something doesn't exist
 var ErrKeyNotFound = errs.Class("key not found")
 

@@ -208,7 +208,7 @@ func testConstraints(t *testing.T, ctx *testcontext.Context, store storage.KeyVa
 					}
 
 					err = store.CompareAndSwap(ctx, key, oldValue, storage.Value(newValue))
-					if storage.ErrValueChanged.Has(err) {
+					if storage.ErrValueChanged.Has(err) || storage.ErrKeyExists.Has(err) {
 						// Another goroutine was faster. Make a new attempt.
 						continue
 					}
