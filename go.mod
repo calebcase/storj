@@ -112,3 +112,7 @@ require (
 	storj.io/drpc v0.0.8
 	storj.io/uplink v0.0.0-20200131143957-f3b6350b4add
 )
+
+replace storj.io/common => /home/ccase/src/github.com/storj/common
+
+replace storj.io/uplink => /home/ccase/src/github.com/storj/uplink

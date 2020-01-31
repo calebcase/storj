@@ -1299,6 +1299,47 @@ func (endpoint *Endpoint) GetObject(ctx context.Context, req *pb.ObjectGetReques
 	}, nil
 }
 
+// UpdateObjectMetadata updates an Object's metadata.
+func (endpoint *Endpoint) UpdateObjectMetadata(ctx context.Context, req *pb.ObjectMetadataUpdateRequest) (resp *pb.ObjectMetadataUpdateResponse, err error) {
+	defer mon.Task()(&ctx)(&err)
+
+	keyInfo, err := endpoint.validateAuth(ctx, req.Header, macaroon.Action{
+		Op:            macaroon.ActionRead,
+		Bucket:        req.Bucket,
+		EncryptedPath: req.EncryptedPath,
+		Time:          time.Now(),
+	})
+	if err != nil {
+		return nil, rpcstatus.Error(rpcstatus.Unauthenticated, err.Error())
+	}
+
+	err = endpoint.validateBucket(ctx, req.Bucket)
+	if err != nil {
+		return nil, rpcstatus.Error(rpcstatus.InvalidArgument, err.Error())
+	}
+
+	oldPointer, path, err := endpoint.getPointer(ctx, keyInfo.ProjectID, -1, req.Bucket, req.EncryptedPath)
+	if err != nil {
+		return nil, err
+	}
+
+	newPointer, path, err := endpoint.getPointer(ctx, keyInfo.ProjectID, -1, req.Bucket, req.EncryptedPath)
+	if err != nil {
+		return nil, err
+	}
+
+	newPointer.Metadata = req.EncryptedMetadata
+
+	err = endpoint.metainfo.Update(ctx, path, oldPointer, newPointer)
+	if err != nil {
+		return nil, rpcstatus.Error(rpcstatus.Internal, err.Error())
+	}
+
+	mon.Meter("req_update_object_metadata").Mark(1)
+
+	return &pb.ObjectMetadataUpdateResponse{}, nil
+}
+
 // ListObjects list objects according to specific parameters
 func (endpoint *Endpoint) ListObjects(ctx context.Context, req *pb.ObjectListRequest) (resp *pb.ObjectListResponse, err error) {
 	defer mon.Task()(&ctx)(&err)

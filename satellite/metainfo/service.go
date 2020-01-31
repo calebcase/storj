@@ -49,6 +49,25 @@ func (s *Service) Put(ctx context.Context, path string, pointer *pb.Pointer) (er
 	return Error.Wrap(err)
 }
 
+// Update updates pointer at the specific path.
+func (s *Service) Update(ctx context.Context, path string, oldPointer *pb.Pointer, newPointer *pb.Pointer) (err error) {
+	defer mon.Task()(&ctx)(&err)
+
+	oldPointerBytes, err := proto.Marshal(oldPointer)
+	if err != nil {
+		return Error.Wrap(err)
+	}
+
+	newPointerBytes, err := proto.Marshal(newPointer)
+	if err != nil {
+		return Error.Wrap(err)
+	}
+
+	err = s.db.CompareAndSwap(ctx, []byte(path), oldPointerBytes, newPointerBytes)
+
+	return Error.Wrap(err)
+}
+
 // UpdatePieces calls UpdatePiecesCheckDuplicates with checkDuplicates equal to false.
 func (s *Service) UpdatePieces(ctx context.Context, path string, ref *pb.Pointer, toAdd, toRemove []*pb.RemotePiece) (pointer *pb.Pointer, err error) {
 	return s.UpdatePiecesCheckDuplicates(ctx, path, ref, toAdd, toRemove, false)
